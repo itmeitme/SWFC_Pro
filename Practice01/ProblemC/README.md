@@ -20,6 +20,8 @@
 * 그 외 추가적인 전역변수나 함수는 사용 가능하다.
 * 질의 수가 2,520을 초과하거나 1124 같은 잘못된 숫자를 질의했을 경우 프로그램은 strike=-1, ball=-1을 리턴한다.
 
+----
+
 #### **[참고]**  
 사용자 소스파일을 분리컴파일 하여 문제를 푸는경우 사용자는 아래 정의한 구조체를 사용자 소스 파일의 상단에 추가하여 코딩합니다.  
 **!!!! 하지만 소스를 제출하여 채점할 때, 구조체 선언부는 제출하지 않습니다.!!!!**
@@ -46,5 +48,139 @@ void tryBest(int suppose[])
 // ============== submit code end ==============
 
  
-// ============== ​user code end   ==============
+// ============== user code end   ==============
+
+
+// ===== main_code ============================================================​  
+
+#include &lt;stdio.h&gt;  
+#include &lt;stdlib.h&gt;  
+#include &lt;time.h&gt;  
+
+#define MAX          4  
+#define MAX_COUNT 2520  
+#define _CRT_SECURE_NO_WARNINGS   
+
+static int baseballNumbers[MAX];
+static int numbersCheck[10];
+static int T;
+
+extern void tryBest(int suppose[]); ////************  
+
+static int queryCallCount;
+static const int queryLimit = 110;
+static int scoreTable[MAX_COUNT + 5];
+
+typedef struct Data
+{
+	int strike;
+	int ball;
+} Data;
+
+static bool isAble(int suppose[])
+{
+	int supposeCheck[10];
+
+	for (int count = 0; count &lt; 10; ++count) supposeCheck[count] = 0;
+
+	for (int idx = 0; idx &lt; MAX; ++idx)
+	{
+		if (suppose[idx] & lt; 0 || suppose[idx] & gt; = 10 || supposeCheck[suppose[idx]] & gt; 0) return false;
+		supposeCheck[suppose[idx]]++;
+	}
+	return true;
+}
+
+Data query(int suppose[])
+{
+	Data result;
+
+	if (queryCallCount &gt; MAX_COUNT)
+	{
+		result.strike = -1;
+		result.ball = -1;
+		return result;
+	}
+
+	queryCallCount++;
+
+	if (!isAble(suppose))
+	{
+		result.strike = -1;
+		result.ball = -1;
+		return result;
+	}
+	result.strike = 0;
+	result.ball = 0;
+
+	for (int idx = 0; idx &lt; MAX; ++idx)
+		if (suppose[idx] == baseballNumbers[idx])
+			result.strike++;
+		else if (numbersCheck[suppose[idx]] & gt; 0)
+			result.ball++;
+	return result;
+}
+
+static void initialize()
+{
+	for (int count = 0; count &lt; 10; ++count) numbersCheck[count] = 0;
+	for (int idx = 0; idx &lt; MAX;)
+	{
+		int c = rand() % 10;
+		if (numbersCheck[c] == 0)
+		{
+			baseballNumbers[idx] = c;
+			numbersCheck[c]++;
+			idx++;
+		}
+	}
+	queryCallCount = 0;
+}
+
+static bool check(int suppose[])
+{
+	for (int idx = 0; idx &lt; MAX; ++idx)
+	{
+		if (suppose[idx] != baseballNumbers[idx])
+			return false;
+	}
+	return true;
+}
+
+void initScoreTable()
+{
+	int i;
+	for (i = 0; i &lt; = 10; ++i) scoreTable[i] = 100;
+	for (; i &lt; = queryLimit; ++i) scoreTable[i] = 110 - i;
+}
+
+int main()
+{
+	int total_score = 0;
+	//freopen("sample_input.txt", "r", stdin);  
+	setbuf(stdout, NULL);
+	//scanf("%d", &amp;T);  
+	T = 50;
+	initScoreTable();
+	srand((unsigned int)time(NULL));
+	for (int testcase = 1; testcase &lt; = T; ++testcase) {
+		initialize();
+		int suppose[MAX];
+		tryBest(suppose);
+		if (!check(suppose)) {
+			queryCallCount = MAX_COUNT;
+			total_score = 0;
+			break;
+		}
+		printf("#%d %d : ", testcase, queryCallCount);
+		for (int i = 0; i &lt; 4; ++i) printf("%d", suppose[i]);
+		puts("");
+		if (queryCallCount &gt; queryLimit)
+			queryCallCount = queryLimit;
+		total_score += scoreTable[queryCallCount];
+	}
+	printf("Total Score = %d\n", total_score / T);
+	return 0;
+}
 ```
+
