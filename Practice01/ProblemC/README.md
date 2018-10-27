@@ -25,8 +25,8 @@
 **!!!! 하지만 소스를 제출하여 채점할 때, 구조체 선언부는 제출하지 않습니다.!!!!**
 
 
-```{.cpp}
-/// ============== user code start ==============
+```cpp
+// ============== user code start ==============
 #if 1
 typedef struct Data{
 	int strike;
@@ -34,20 +34,17 @@ typedef struct Data{
 } Data;
 #endif // 1
 
-/// ============== submit code start ==============
-
+// ============== submit code start ==============
 
 extern Data query(int supose[]);
-
 
 void tryBest(int suppose[])
 {
 
 }
 
-/// ============== submit code end ==============
+// ============== submit code end ==============
 
  
-
-/// ============== ​user code end   ==============
+// ============== ​user code end   ==============
 ```
