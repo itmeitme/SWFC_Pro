@@ -1,4 +1,4 @@
-# Problem A : const구간의 합 구하기 2D
+# Problem B : 사회망 서비스(SNS) 
 
 
 ### **문제**
