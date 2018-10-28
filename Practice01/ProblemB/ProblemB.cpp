@@ -27,7 +27,6 @@ int main(void)
 		pidx -= 1; cidx -= 1;
 
 		tree[pidx].node.push_back(cidx);
-		tree[cidx].node.push_back(pidx);
 	}
 
 	dfs(tree, 0);
