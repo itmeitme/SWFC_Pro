@@ -1,10 +1,10 @@
 #include <iostream>
-#include <list>
+#include <vector>
 using namespace std;
 
 typedef struct vertex
 {
-	list<int> node;
+	vector<int> node;
 	int late = 0;
 	int early = 0;
 	bool visit = false;
@@ -41,12 +41,10 @@ void dfs(vertex* tree, int idx)
 	tree[idx].early = 1;
 	tree[idx].late = 0;
 
-	list<int>::iterator itor = tree[idx].node.begin();
-
 	for (int i = 0; i < tree[idx].node.size(); i++)
 	{
-		int nidx = *(itor);
-		itor++;
+		int nidx = tree[idx].node[i];
+
 		if (!tree[nidx].visit)
 		{
 			dfs(tree, nidx);
