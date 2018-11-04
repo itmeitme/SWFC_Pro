@@ -1,110 +1,155 @@
-#include <iostream>
-#include <cstdio>
-#define min(x,y) ( x<y ? x:y)
+#include <stdio.h>
+#include <malloc.h>
+#define min(x,y) (x<y ? x:y)
 
+const int maxN = 1000000;
 int N;
-char **M;
-int min_val = N;
-int **DP_val;
-bool *V;
+int child[maxN + maxN + 1];
+int sibling[maxN + maxN + 1];
+int last_child[maxN + 1];
+int visit[maxN + 1];
+int order[maxN + 1];
+int d[maxN + 1][2];
 
-using namespace std;
 
+typedef struct _LINK {
+	int val;
+	struct _LINK *prev;
+	struct _LINK *next;
+}LINK;
 
-typedef struct _c_list {
-	int child_cnt;
-	int *childs;
-}c_list;
+typedef struct _QUEUE {
+	LINK head;
+	LINK tail;
 
-c_list *child_list;
-
-void make_child_list(int node_num) {
-	V[node_num] = true;
-	//printf("node : %d\n", node_num);
-	//printf("child :");
-	int cnt = 0;
-	for (int i = 1; i <= N; i++) {
-		if (!V[i] && M[node_num][i]) {
-			cnt++;
-			//printf("%3d",i);
-		}
-	}
-	//printf("\n");
-	child_list[node_num].child_cnt = cnt;
-	child_list[node_num].childs = (int*)malloc(sizeof(int)*cnt);
-	cnt = 0;
-	for (int i = 1; i <= N; i++) {
-		if (!V[i] && M[node_num][i]) {
-			V[i] = 1;
-			child_list[node_num].childs[cnt++] = i;
-			make_child_list(i);
-		}
+	_QUEUE() {
+		head.val = 0;
+		head.next = &tail;
+		head.prev = NULL;
+		tail.prev = &head;
+		tail.next = NULL;
 	}
 
-}
+	void push(int val) {
+		LINK *p = (LINK*)malloc(sizeof(LINK));
+		p->val = val;
+		tail.prev->next = p;
+		p->prev = tail.prev;
 
-int DP(int node_num, bool state) {
-	int return_val1 = 0;
-	//printf("node : %d state : %d\n", node_num,state);
-	if (DP_val[node_num][state] != -1) {
-		//printf("exist node : %d state : %d ret : %d\n", node_num, state, DP_val[node_num][state]);
-		return DP_val[node_num][state];
+		p->next = &tail;
+		tail.prev = p;
 	}
-	if (child_list[node_num].child_cnt == 0) {
-		//printf("leaf node : %d state : %d ret : %d\n", node_num, state, DP_val[node_num][state]=state); 
-		return DP_val[node_num][state] = state;
+	bool empty() {
+		if (head.next == &tail)
+			return 1;
+		return 0;
+	}
+	int front() {
+		return head.next->val;
+	}
+	void pop() {
+		LINK *p;
+		p = head.next;
+		head.next->next->prev = &head;
+		head.next = head.next->next;
+		free(p);
 	}
 
-	if (state == 0) { // node가 얼리 어답터가 아닐때
-		for (int i = 0; i < child_list[node_num].child_cnt; i++) {
-			return_val1 += DP(child_list[node_num].childs[i], 1);
-		}
-	}
-	else if (state == 1) { // node가 얼리 어답터 일때
-		return_val1 = 1;
-		for (int i = 0; i < child_list[node_num].child_cnt; i++) {
-			return_val1 += min(DP(child_list[node_num].childs[i], 1), DP(child_list[node_num].childs[i], 0));
-		}
-	}
-	//printf("complete node : %d state : %d ret : %d\n", node_num, state, DP_val[node_num][state]=return_val1);
-	return DP_val[node_num][state] = return_val1;
-}
+}QUEUE;
 
-int main(void)
+QUEUE q;
+
+int edge_num = 2;
+void setG(int p, int s)
 {
-	scanf("%d", &N);
-	int u, v;
-	M = (char **)malloc(sizeof(char*)*(N + 1));
-	DP_val = (int **)malloc(sizeof(int*) * (N + 1));
-	V = (bool *)malloc(sizeof(bool)*(N + 1));
-	child_list = (c_list*)malloc(sizeof(c_list)*(N + 1));
-
-	for (int i = 1; i <= N; i++) {
-		M[i] = (char*)malloc(sizeof(char)*(N + 1));
-		for (int j = 0; j <= N; j++)
-			M[i][j] = 0;
-		DP_val[i] = (int *)malloc(sizeof(int) * 2);
-		DP_val[i][0] = -1;
-		DP_val[i][1] = -1;
-		V[i] = 0;
-	}
-	for (int i = 1; i < N; i++) {
-		scanf("%d %d", &u, &v);
-		M[u][v] = 1;
-		M[v][u] = 1;
-	}
-	make_child_list(1);
-	free(V);
-	printf("%d\n", min(DP(1, 0), DP(1, 1)));
-
-	for (int i = 1; i <= N; i++) {
-		free(DP_val[i]);
-		free(M[i]);
-		free(child_list[i].childs);
-	}
-	free(child_list);
-	free(DP_val);
-	free(M);
-
-	return 0; //정상종료시 반드시 0을 리턴해야 합니다.
+	child[edge_num] = s;
+	sibling[edge_num] = last_child[p];
+	last_child[p] = edge_num++;
 }
+
+
+int main()
+{
+	//freopen("input.txt","r",stdin);
+	scanf("%d", &N);
+	int a, b;
+	for (int n = 1; n < N; n++)
+	{
+		
+		scanf("%d %d", &a, &b);
+		setG(a, b); // 엣지 추가
+		setG(b, a);
+	}
+	for (int n = 1; n <= N; n++)
+	{
+		d[n][1] = 1;
+	}
+	
+	
+	
+	q.push(1);
+	int cnt = 1;
+	order[cnt++] = 1;
+	while (!q.empty())
+	{
+		int par = q.front(); q.pop();
+		//printf("node : %d\n",par);
+		int x = last_child[par]; //par의 가장 마지막 child를 저장하는 엣지번호를 x에 저장
+		visit[par] = 1;
+		while (x)
+		{
+			int chi = child[x]; // 엣지 노드에서 child 값을 불러 들여서 chi에 저장
+			x = sibling[x]; // 이전 형제 노드 번호를 x에 저장
+			if (visit[chi]) continue;
+			order[cnt++] = chi; // 노드 순서를 order에 저장
+			q.push(chi);
+		}
+	}
+	/*
+	printf("        \t");
+	for (int n = 0; n < edge_num; n++)
+	{
+		printf("%3d", n);
+	}
+	printf("\nchild      :\t");
+	for (int n = 0; n < edge_num; n++)
+	{
+		printf("%3d", child[n]);
+	}
+	printf("\nsibling    :\t");
+	for (int n = 0; n < edge_num; n++)
+	{
+		printf("%3d", sibling[n]);
+	}
+	printf("\nlast_child :\t");
+	for (int n = 0; n < edge_num; n++)
+	{
+		printf("%3d", last_child[n]);
+	}
+	printf("\norder       :\t");
+	for (int n = 0; n < cnt; n++)
+	{
+		printf("%3d", order[n]);
+	}
+	printf("\n");
+	*/
+	for (int c = cnt - 1; c >= 1; c--)// 아래에서 부터 위로 탐색실시
+	{
+		visit[order[c]] = 0; // 방문했다면 0으로 표시
+		int x = last_child[order[c]]; // 마지막 자식노드의 엣지 값 저장
+		//printf("oreder c: %d  x : %d\n",order[c],x);
+		while (x) // 형제 노드가 있다면 형제 노드를 모두 계산해서 부모 노드에 더한다.
+		{
+			int par = child[x]; // par에 현재의 노드(order[c])의 child를 저장
+			x = sibling[x]; //형제 노드를 가리키는 엣지 번호 저장
+			if (visit[par]) continue; // 만약 이미 방문한 곳이 아니라면 즉 par가 자식 노드가 아닌, 상위 노드라면 continue로 패스
+			//printf("d[%d][0] += d[%d][1]\n", order[c], par );
+			d[order[c]][0] += d[par][1]; // 부모 노드가 얼리 어덥터가 아닐때 자식 노드가 모두 얼리 어덥터인 값을 모두 더한다.
+			d[order[c]][1] += min(d[par][0], d[par][1]);// 부모가 얼리 어덥터 일 경우 자식 노드가 얼리 어덥터 인것과 아닌 것 중 최소값을 더한다.
+		}
+	}
+
+	printf("%d\n", min(d[1][0], d[1][1])); //
+	return 0;
+}
+
